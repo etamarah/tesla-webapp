@@ -1,0 +1,34 @@
+pipeline{
+  agent any 
+  tools{
+    maven "maven3.8.6"
+  } 
+  stages{
+    stage('1GetCode'){
+      steps{
+        sh "echo 'cloning the latest application version' "
+        git branch: 'development', url: 'https://github.com/etamarah/maven-web-application'
+      }
+    }
+    stage('3Test+Build'){
+      steps{
+        sh "echo 'running JUnit-test-cases' "
+        sh "echo 'testing must passed to create artifacts ' "
+        sh "mvn clean package"}
+    }
+        stage('4codeQuality'){
+      steps{
+        sh "echo 'perform code quality analysis' "
+        sh "mvn sonar:sonar"}
+    }
+   stage('5uploadNexus'){
+      steps{
+        sh "mvn deploy"
+      }
+    } 
+    stage('6deploy2prod'){
+    steps{
+        deploy adapters: [tomcat8(credentialsId: '7a2a01be-2baa-4cf6-be86-82d15b37ad61', path: '', url: 'http://54.205.118.233:8080/')], contextPath: null, war: 'target/*war'}
+    }
+  }
+}
